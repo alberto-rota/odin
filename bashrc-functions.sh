@@ -1,4 +1,3 @@
-# >>> BEGIN_ALBERTO_BASHRC >>>
 #=================================================================================================
 ### WANDB
 #=================================================================================================
@@ -35,7 +34,6 @@ eval "$(zoxide init bash --cmd cd)"
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 alias ls="eza $@ -lh --tree --level=1 --git --icons"
 #=================================================================================================
-#=================================================================================================
 ### TMUX
 #=================================================================================================
 export TERM=tmux-256color
@@ -50,20 +48,7 @@ tmc() {
     tmux new-session -s "$name" -t "$tag"
 }
 alias tml="tmux ls"
-# Auto-attach to tmux session for all terminal sessions
-# if [[ -z "$TMUX" ]] && [[ $- == *i* ]]; then
-#     # Check if a session named "main" exists
-#     if tmux has-session -t main 2>/dev/null; then
-#         # Attach to existing session
-#         tmux attach-session -t main
-#     else
-#         # Create new session named "main"
-#         tmux new-session -s main
-#     fi
-# fi
-#=================================================================================================
 
+#=================================================================================================
 alias jn='jupyter notebook --ip=0.0.0.0 --port=33433 --no-browser --ServerApp.allow_origin="*"'
 export PATH="$HOME/local/bin:$PATH"
-# <<< END_ALBERTO_BASHRC <<<
-

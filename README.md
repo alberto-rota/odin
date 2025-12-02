@@ -18,7 +18,3 @@ curl -fsSL https://raw.githubusercontent.com/alberto-rota/odin/master/setup.sh |
 ```
 
 This will install:
-- Custom MOTD (message of the day)
-- oh-my-posh with custom theme
-- tmux with custom configuration
-- Custom bash functions and aliases
