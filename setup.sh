@@ -145,7 +145,79 @@ else
 fi
 
 # ---------------------------------------------------------
-# 5. Install bashrc functions script
+# 5. Install fzf, zoxide, and eza
+# ---------------------------------------------------------
+echo "Installing fzf, zoxide, and eza..."
+
+# Install fzf
+if ! command -v fzf >/dev/null 2>&1; then
+    echo "Installing fzf..."
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y fzf
+        echo "fzf installed successfully."
+    else
+        echo "WARNING: apt-get not found. Please install fzf manually."
+    fi
+else
+    echo "fzf already installed."
+fi
+
+# Install zoxide
+if ! command -v zoxide >/dev/null 2>&1; then
+    echo "Installing zoxide..."
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y zoxide
+        echo "zoxide installed successfully."
+    else
+        echo "WARNING: apt-get not found. Please install zoxide manually."
+    fi
+else
+    echo "zoxide already installed."
+fi
+
+# Install eza
+if ! command -v eza >/dev/null 2>&1; then
+    echo "Installing eza..."
+    ARCH=$(uname -m)
+    case "$ARCH" in
+        x86_64)
+            EZA_ARCH="x86_64-unknown-linux-musl"
+            ;;
+        aarch64|arm64)
+            EZA_ARCH="aarch64-unknown-linux-musl"
+            ;;
+        *)
+            echo "WARNING: Unsupported architecture for eza: $ARCH"
+            echo "         Attempting to use x86_64 binary..."
+            EZA_ARCH="x86_64-unknown-linux-musl"
+            ;;
+    esac
+    
+    EZA_VERSION="v0.18.15"
+    EZA_BINARY="eza-${EZA_ARCH}.tar.xz"
+    EZA_INSTALL_DIR="/usr/local/bin"
+    
+    if command -v curl >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
+        TMP_DIR=$(mktemp -d)
+        if curl -fsSL "https://github.com/eza-community/eza/releases/download/${EZA_VERSION}/${EZA_BINARY}" -o "$TMP_DIR/eza.tar.xz"; then
+            tar -xf "$TMP_DIR/eza.tar.xz" -C "$TMP_DIR" --strip-components=1
+            sudo mv "$TMP_DIR/bin/eza" "$EZA_INSTALL_DIR/eza"
+            sudo chmod +x "$EZA_INSTALL_DIR/eza"
+            rm -rf "$TMP_DIR"
+            echo "eza installed successfully."
+        else
+            rm -rf "$TMP_DIR"
+            echo "WARNING: Failed to download eza. Please install manually."
+        fi
+    else
+        echo "WARNING: curl or tar not found; cannot download eza."
+    fi
+else
+    echo "eza already installed."
+fi
+
+# ---------------------------------------------------------
+# 6. Install bashrc functions script
 # ---------------------------------------------------------
 backup_file "$BASHRC_FUNCTIONS"
 if command -v curl >/dev/null 2>&1; then
@@ -159,7 +231,7 @@ else
 fi
 
 # ---------------------------------------------------------
-# 6. Update ~/.bashrc to source the functions script
+# 7. Update ~/.bashrc to source the functions script
 # ---------------------------------------------------------
 backup_file "$BASHRC"
 
@@ -182,7 +254,7 @@ else
 fi
 
 # ---------------------------------------------------------
-# 7. Update ~/.profile (ensure it sources ~/.bashrc)
+# 8. Update ~/.profile (ensure it sources ~/.bashrc)
 # ---------------------------------------------------------
 backup_file "$PROFILE"
 
