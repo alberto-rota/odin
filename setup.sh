@@ -23,6 +23,30 @@ BASHRC_FUNCTIONS="$HOME/.bashrc-functions.sh"
 # ---------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------
+STEP_NUM=0
+TOTAL_STEPS=14
+
+print_step() {
+    STEP_NUM=$((STEP_NUM + 1))
+    STEP_NAME="$1"
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "STEP $STEP_NUM/$TOTAL_STEPS: $STEP_NAME"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+}
+
+print_success() {
+    echo "✓ $1"
+}
+
+print_warning() {
+    echo "⚠ WARNING: $1"
+}
+
+print_error() {
+    echo "✗ ERROR: $1"
+}
+
 backup_file() {
     file="$1"
     if [ -f "$file" ] && [ ! -f "$file.bak" ]; then
@@ -43,9 +67,8 @@ ensure_line_in_file() {
 # ---------------------------------------------------------
 # 1. Install oh-my-posh
 # ---------------------------------------------------------
-echo "Checking for oh-my-posh..."
+print_step "Installing oh-my-posh"
 if ! command -v oh-my-posh >/dev/null 2>&1; then
-    echo "Installing oh-my-posh..."
     OMP_VERSION="v19.7.0"
     OMP_INSTALL_DIR="/usr/local/bin"
     
@@ -73,166 +96,207 @@ if ! command -v oh-my-posh >/dev/null 2>&1; then
         if curl -fsSL "https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/${OMP_VERSION}/${OMP_BINARY}" -o "$TMP_BINARY"; then
             sudo mv "$TMP_BINARY" "$OMP_INSTALL_DIR/oh-my-posh"
             sudo chmod +x "$OMP_INSTALL_DIR/oh-my-posh"
-            echo "oh-my-posh installed to $OMP_INSTALL_DIR/oh-my-posh (architecture: $ARCH)"
+            print_success "oh-my-posh installed to $OMP_INSTALL_DIR/oh-my-posh (architecture: $ARCH)"
         else
             rm -f "$TMP_BINARY"
-            echo "WARNING: Failed to download oh-my-posh. Please install manually."
+            print_error "Failed to download oh-my-posh. Please install manually."
         fi
     else
-        echo "WARNING: curl not found; cannot download oh-my-posh."
+        print_error "curl not found; cannot download oh-my-posh."
     fi
 else
-    echo "oh-my-posh already installed."
+    print_success "oh-my-posh already installed."
 fi
 
 # ---------------------------------------------------------
 # 2. Install oh-my-posh theme
 # ---------------------------------------------------------
-echo "Installing oh-my-posh theme to: $THEME_PATH"
+print_step "Installing oh-my-posh theme"
 mkdir -p "$THEME_DIR"
 if command -v curl >/dev/null 2>&1; then
     if ! curl -fsSL "$OMP_THEME_URL" -o "$THEME_PATH"; then
-        echo "WARNING: Failed to download theme from:"
-        echo "         $OMP_THEME_URL"
+        print_error "Failed to download theme from: $OMP_THEME_URL"
         echo "         You may need to place $THEME_NAME manually in $THEME_DIR"
     else
-        echo "Theme installed successfully."
+        print_success "Theme installed to $THEME_PATH"
     fi
 else
-    echo "WARNING: curl not found; cannot download theme."
+    print_error "curl not found; cannot download theme."
 fi
 
 # ---------------------------------------------------------
 # 3. Install MOTD
 # ---------------------------------------------------------
-echo "Installing MOTD..."
+print_step "Installing MOTD"
 if command -v curl >/dev/null 2>&1; then
     if curl -fsSL "$MOTD_URL" | sudo tee "$MOTD" >/dev/null; then
-        echo "MOTD installed successfully."
+        print_success "MOTD installed to $MOTD"
     else
-        echo "WARNING: Failed to download or install MOTD from: $MOTD_URL"
+        print_error "Failed to download or install MOTD from: $MOTD_URL"
     fi
 else
-    echo "WARNING: curl not found; cannot download MOTD."
+    print_error "curl not found; cannot download MOTD."
 fi
 
 # ---------------------------------------------------------
 # 4. Install tmux and configure
 # ---------------------------------------------------------
-echo "Checking for tmux..."
+print_step "Installing tmux"
 if ! command -v tmux >/dev/null 2>&1; then
-    echo "Installing tmux..."
     if command -v apt-get >/dev/null 2>&1; then
         sudo apt-get update && sudo apt-get install -y tmux
-        echo "tmux installed successfully."
+        print_success "tmux installed successfully"
     else
-        echo "WARNING: apt-get not found. Please install tmux manually."
+        print_error "apt-get not found. Please install tmux manually."
     fi
 else
-    echo "tmux already installed."
+    print_success "tmux already installed"
 fi
 
-# Install .tmux.conf
+print_step "Configuring tmux"
 backup_file "$TMUXCONF"
 if command -v curl >/dev/null 2>&1; then
     if curl -fsSL "$TMUXCONF_URL" -o "$TMUXCONF"; then
-        echo "tmux configuration installed successfully."
+        print_success "tmux configuration installed to $TMUXCONF"
     else
-        echo "WARNING: Failed to download .tmux.conf from: $TMUXCONF_URL"
+        print_error "Failed to download .tmux.conf from: $TMUXCONF_URL"
     fi
 else
-    echo "WARNING: curl not found; cannot download .tmux.conf."
+    print_error "curl not found; cannot download .tmux.conf"
 fi
 
 # ---------------------------------------------------------
 # 5. Install fzf, zoxide, and eza
 # ---------------------------------------------------------
-echo "Installing fzf, zoxide, and eza..."
-
-# Install fzf
+print_step "Installing fzf"
 if ! command -v fzf >/dev/null 2>&1; then
-    echo "Installing fzf..."
     if command -v apt-get >/dev/null 2>&1; then
         sudo apt-get install -y fzf
-        echo "fzf installed successfully."
+        print_success "fzf installed successfully"
     else
-        echo "WARNING: apt-get not found. Please install fzf manually."
+        print_error "apt-get not found. Please install fzf manually."
     fi
 else
-    echo "fzf already installed."
+    print_success "fzf already installed"
 fi
 
-# Install zoxide
+# Set up fzf key bindings and fuzzy completion
+if command -v fzf >/dev/null 2>&1; then
+    if [ -f ~/.fzf.bash ]; then
+        print_success "fzf completion already configured"
+    else
+        # Generate fzf completion file
+        if fzf --bash > ~/.fzf.bash 2>/dev/null; then
+            print_success "fzf completion configured"
+        else
+            print_warning "Could not generate fzf completion"
+        fi
+    fi
+fi
+
+print_step "Installing zoxide"
 if ! command -v zoxide >/dev/null 2>&1; then
-    echo "Installing zoxide..."
     if command -v apt-get >/dev/null 2>&1; then
         sudo apt-get install -y zoxide
-        echo "zoxide installed successfully."
+        print_success "zoxide installed successfully"
     else
-        echo "WARNING: apt-get not found. Please install zoxide manually."
+        print_error "apt-get not found. Please install zoxide manually."
     fi
 else
-    echo "zoxide already installed."
+    print_success "zoxide already installed"
 fi
 
-# Install eza
+print_step "Installing eza"
 if ! command -v eza >/dev/null 2>&1; then
-    echo "Installing eza..."
-    ARCH=$(uname -m)
-    case "$ARCH" in
-        x86_64)
-            EZA_ARCH="x86_64-unknown-linux-musl"
-            ;;
-        aarch64|arm64)
-            EZA_ARCH="aarch64-unknown-linux-musl"
-            ;;
-        *)
-            echo "WARNING: Unsupported architecture for eza: $ARCH"
-            echo "         Attempting to use x86_64 binary..."
-            EZA_ARCH="x86_64-unknown-linux-musl"
-            ;;
-    esac
-    
-    EZA_VERSION="v0.18.15"
-    EZA_BINARY="eza-${EZA_ARCH}.tar.xz"
-    EZA_INSTALL_DIR="/usr/local/bin"
-    
-    if command -v curl >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
-        TMP_DIR=$(mktemp -d)
-        if curl -fsSL "https://github.com/eza-community/eza/releases/download/${EZA_VERSION}/${EZA_BINARY}" -o "$TMP_DIR/eza.tar.xz"; then
-            tar -xf "$TMP_DIR/eza.tar.xz" -C "$TMP_DIR" --strip-components=1
-            sudo mv "$TMP_DIR/bin/eza" "$EZA_INSTALL_DIR/eza"
-            sudo chmod +x "$EZA_INSTALL_DIR/eza"
-            rm -rf "$TMP_DIR"
-            echo "eza installed successfully."
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y eza
+        print_success "eza installed successfully"
+    else
+        print_error "apt-get not found. Please install eza manually."
+    fi
+else
+    print_success "eza already installed"
+fi
+
+print_step "Installing ripgrep"
+if ! command -v rg >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y ripgrep
+        print_success "ripgrep installed successfully"
+    else
+        print_error "apt-get not found. Please install ripgrep manually."
+    fi
+else
+    print_success "ripgrep already installed"
+fi
+
+print_step "Installing fd"
+if ! command -v fd >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y fd-find
+        print_success "fd installed successfully"
+    else
+        print_error "apt-get not found. Please install fd manually."
+    fi
+else
+    print_success "fd already installed"
+fi
+
+# ---------------------------------------------------------
+# 6. Install uv python package manager
+# ---------------------------------------------------------
+print_step "Installing uv python package manager"
+if ! command -v uv >/dev/null 2>&1; then
+    if command -v curl >/dev/null 2>&1; then
+        if curl -LsSf https://astral.sh/uv/install.sh | sh; then
+            print_success "uv installed successfully"
+            # Add uv to PATH (it installs to ~/.cargo/bin by default, or ~/.local/bin)
+            UV_BIN_DIR="$HOME/.cargo/bin"
+            if [ -d "$UV_BIN_DIR" ] && [ -f "$UV_BIN_DIR/uv" ]; then
+                if ! echo "$PATH" | grep -q "$UV_BIN_DIR"; then
+                    export PATH="$UV_BIN_DIR:$PATH"
+                    ensure_line_in_file "export PATH=\"\$HOME/.cargo/bin:\$PATH\"" "$BASHRC"
+                    print_success "Added $UV_BIN_DIR to PATH"
+                fi
+            fi
+            # Also check ~/.local/bin as fallback
+            UV_BIN_DIR_ALT="$HOME/.local/bin"
+            if [ -d "$UV_BIN_DIR_ALT" ] && [ -f "$UV_BIN_DIR_ALT/uv" ]; then
+                if ! echo "$PATH" | grep -q "$UV_BIN_DIR_ALT"; then
+                    export PATH="$UV_BIN_DIR_ALT:$PATH"
+                    ensure_line_in_file "export PATH=\"\$HOME/.local/bin:\$PATH\"" "$BASHRC"
+                    print_success "Added $UV_BIN_DIR_ALT to PATH"
+                fi
+            fi
         else
-            rm -rf "$TMP_DIR"
-            echo "WARNING: Failed to download eza. Please install manually."
+            print_error "Failed to install uv. Please install manually."
         fi
     else
-        echo "WARNING: curl or tar not found; cannot download eza."
+        print_error "curl not found; cannot install uv."
     fi
 else
-    echo "eza already installed."
+    print_success "uv already installed"
 fi
 
 # ---------------------------------------------------------
-# 6. Install bashrc functions script
+# 7. Install bashrc functions script
 # ---------------------------------------------------------
+print_step "Installing bashrc functions script"
 backup_file "$BASHRC_FUNCTIONS"
 if command -v curl >/dev/null 2>&1; then
     if curl -fsSL "$BASHRC_FUNCTIONS_URL" -o "$BASHRC_FUNCTIONS"; then
-        echo "bashrc functions script installed successfully."
+        print_success "bashrc functions script installed to $BASHRC_FUNCTIONS"
     else
-        echo "WARNING: Failed to download bashrc-functions.sh from: $BASHRC_FUNCTIONS_URL"
+        print_error "Failed to download bashrc-functions.sh from: $BASHRC_FUNCTIONS_URL"
     fi
 else
-    echo "WARNING: curl not found; cannot download bashrc-functions.sh."
+    print_error "curl not found; cannot download bashrc-functions.sh"
 fi
 
 # ---------------------------------------------------------
-# 7. Update ~/.bashrc to source the functions script
+# 8. Update ~/.bashrc to source the functions script
 # ---------------------------------------------------------
+print_step "Configuring ~/.bashrc"
 backup_file "$BASHRC"
 
 # Create file if missing
@@ -248,14 +312,15 @@ if [ -f "$BASHRC_FUNCTIONS" ]; then
 fi
 # <<< END_ALBERTO_BASHRC <<<
 EOF
-    echo "Updated $BASHRC to source bashrc-functions.sh"
+    print_success "Updated $BASHRC to source bashrc-functions.sh"
 else
-    echo "Custom block already present in $BASHRC – skipping."
+    print_success "Custom block already present in $BASHRC"
 fi
 
 # ---------------------------------------------------------
-# 8. Update ~/.profile (ensure it sources ~/.bashrc)
+# 9. Update ~/.profile (ensure it sources ~/.bashrc)
 # ---------------------------------------------------------
+print_step "Configuring ~/.profile"
 backup_file "$PROFILE"
 
 if [ -f "$PROFILE" ]; then
@@ -270,9 +335,9 @@ if [ -f "$HOME/.bashrc" ]; then
   . "$HOME/.bashrc"
 fi
 EOF
-        echo "Updated $PROFILE to source ~/.bashrc"
+        print_success "Updated $PROFILE to source ~/.bashrc"
     else
-        echo "$PROFILE already sources ~/.bashrc – skipping."
+        print_success "$PROFILE already sources ~/.bashrc"
     fi
 else
     cat <<'EOF' > "$PROFILE"
@@ -283,15 +348,20 @@ if [ -f "$HOME/.bashrc" ]; then
   . "$HOME/.bashrc"
 fi
 EOF
-    echo "Created $PROFILE"
+    print_success "Created $PROFILE"
 fi
 
-echo
-echo "Done."
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✓ Installation Complete!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 echo "Backups (if any) are in:"
 echo "  $BASHRC.bak"
 echo "  $PROFILE.bak"
 echo "  $TMUXCONF.bak"
 echo "  $BASHRC_FUNCTIONS.bak"
-echo
-echo "Open a new shell or run:  source \"$BASHRC\""
+echo ""
+echo "Opening a new shell or running 'source ~/.bashrc' will apply all changes."
+echo ""
+
