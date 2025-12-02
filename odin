@@ -152,35 +152,35 @@ update_all() {
 }
 
 launch_gpu_monitor() {
-    if ! command -v nvitop >/dev/null 2>&1; then
-        echo "nvitop not found. Installing..."
-        if command -v pip >/dev/null 2>&1; then
-            pip install --user nvitop
-        elif command -v pip3 >/dev/null 2>&1; then
-            pip3 install --user nvitop
-        elif command -v uv >/dev/null 2>&1; then
-            uv pip install nvitop
-        else
-            echo "ERROR: No Python package manager found (pip, pip3, or uv)"
-            echo "Please install nvitop manually: pip install nvitop"
-            exit 1
-        fi
+   #  if ! command -v nvitop >/dev/null 2>&1; then
+   #      echo "nvitop not found. Installing..."
+   #      if command -v pip >/dev/null 2>&1; then
+   #          pip install --user nvitop
+   #      elif command -v pip3 >/dev/null 2>&1; then
+   #          pip3 install --user nvitop
+   #      elif command -v uv >/dev/null 2>&1; then
+   #          uv pip install nvitop
+   #      else
+   #          echo "ERROR: No Python package manager found (pip, pip3, or uv)"
+   #          echo "Please install nvitop manually: pip install nvitop"
+   #          exit 1
+   #      fi
         
-        # Check if installation was successful
-        if ! command -v nvitop >/dev/null 2>&1; then
-            # Try to find it in user's local bin
-            if [ -f "$HOME/.local/bin/nvitop" ]; then
-                export PATH="$HOME/.local/bin:$PATH"
-            else
-                echo "ERROR: nvitop installation failed or not in PATH"
-                echo "Please install manually: pip install nvitop"
-                exit 1
-            fi
-        fi
-    fi
+   #      # Check if installation was successful
+   #      if ! command -v nvitop >/dev/null 2>&1; then
+   #          # Try to find it in user's local bin
+   #          if [ -f "$HOME/.local/bin/nvitop" ]; then
+   #              export PATH="$HOME/.local/bin:$PATH"
+   #          else
+   #              echo "ERROR: nvitop installation failed or not in PATH"
+   #              echo "Please install manually: pip install nvitop"
+   #              exit 1
+   #          fi
+   #      fi
+   #  fi
     
     # Launch nvitop
-    exec nvitop
+    exec uvx nvitop
 }
 
 show_help() {
