@@ -10,6 +10,7 @@ set -eu
 : "${TMUXCONF_URL:=$REPO_URL/.tmux.conf}"
 : "${MOTD_URL:=$REPO_URL/motd.txt}"
 : "${ODIN_CLI_URL:=$REPO_URL/odin}"
+: "${TMX_SCRIPT_URL:=$REPO_URL/bin/tmx}"
 
 THEME_NAME="pata-odin-shell.omp.json"
 THEME_DIR="$HOME/.cache/oh-my-posh/themes"
@@ -25,27 +26,117 @@ BASHRC_FUNCTIONS="$HOME/.bashrc-functions.sh"
 # Helpers
 # ---------------------------------------------------------
 STEP_NUM=0
-TOTAL_STEPS=15
+TOTAL_STEPS=16
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
 
 print_step() {
     STEP_NUM=$((STEP_NUM + 1))
     STEP_NAME="$1"
     echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "STEP $STEP_NUM/$TOTAL_STEPS: $STEP_NAME"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${WHITE}STEP ${BLUE}$STEP_NUM${WHITE}/${BLUE}$TOTAL_STEPS${WHITE}: ${CYAN}$STEP_NAME${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
 print_success() {
-    echo "✓ $1"
+    echo -e "${GREEN}✓${NC} ${GREEN}$1${NC}"
 }
 
 print_warning() {
-    echo "⚠ WARNING: $1"
+    echo -e "${YELLOW}⚠ WARNING:${NC} ${YELLOW}$1${NC}"
 }
 
 print_error() {
-    echo "✗ ERROR: $1"
+    echo -e "${RED}✗ ERROR:${NC} ${RED}$1${NC}"
+}
+
+show_recap() {
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${WHITE}  Installation Complete!${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    
+    echo -e "${BOLD}${CYAN}Installed Tools:${NC}"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}oh-my-posh${NC} - Prompt theme engine"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}tmux${NC} - Terminal multiplexer"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}fzf${NC} - Fuzzy finder"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}zoxide${NC} - Smart directory jumper"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}eza${NC} - Modern ls replacement"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}ripgrep${NC} - Fast text search"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}fd${NC} - Fast file finder"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}uv${NC} - Fast Python package manager"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}tmx${NC} - Interactive tmux session manager"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}odin${NC} - Odin setup management CLI"
+    echo ""
+    
+    echo -e "${BOLD}${CYAN}Configured Files:${NC}"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}~/.bashrc${NC} - Custom functions and aliases"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}~/.profile${NC} - Sources bashrc"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}~/.tmux.conf${NC} - Tmux configuration"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}~/.bashrc-functions.sh${NC} - Custom functions"
+    echo -e "  ${GREEN}✓${NC} ${WHITE}/etc/motd${NC} - Message of the day"
+    echo ""
+    
+    echo -e "${BOLD}${CYAN}Keyboard Shortcuts:${NC}"
+    echo -e "  ${YELLOW}Ctrl+R${NC} - ${WHITE}Search command history with fzf${NC}"
+    echo -e "  ${YELLOW}↑/↓${NC} - ${WHITE}History search (backward/forward)${NC}"
+    echo ""
+    
+    echo -e "${BOLD}${CYAN}Aliases:${NC}"
+    echo -e "  ${MAGENTA}bashrc${NC} - ${WHITE}Edit ~/.bashrc${NC}"
+    echo -e "  ${MAGENTA}rebash${NC} - ${WHITE}Reload ~/.bashrc${NC}"
+    echo -e "  ${MAGENTA}cda${NC} - ${WHITE}Deactivate conda${NC}"
+    echo -e "  ${MAGENTA}dspace${NC} - ${WHITE}Show large directories (>1GB)${NC}"
+    echo -e "  ${MAGENTA}wbr${NC} - ${WHITE}Kill wandb service${NC}"
+    echo -e "  ${MAGENTA}wbclean${NC} - ${WHITE}Clean wandb cache${NC}"
+    echo -e "  ${MAGENTA}jn${NC} - ${WHITE}Start Jupyter notebook on port 33433${NC}"
+    echo -e "  ${MAGENTA}ls${NC} - ${WHITE}Enhanced with eza (tree, git, icons)${NC}"
+    echo ""
+    
+    echo -e "${BOLD}${CYAN}Commands:${NC}"
+    echo -e "  ${MAGENTA}tmx${NC} - ${WHITE}Interactive tmux session manager${NC}"
+    echo -e "  ${MAGENTA}tma <name>${NC} - ${WHITE}Attach to tmux session${NC}"
+    echo -e "  ${MAGENTA}tml${NC} - ${WHITE}List tmux sessions${NC}"
+    echo -e "  ${MAGENTA}tmc <name>${NC} - ${WHITE}Create new tmux session${NC}"
+    echo -e "  ${MAGENTA}z <dir>${NC} - ${WHITE}Jump to directory with zoxide${NC}"
+    echo -e "  ${MAGENTA}rg <pattern>${NC} - ${WHITE}Search text with ripgrep${NC}"
+    echo -e "  ${MAGENTA}fd <pattern>${NC} - ${WHITE}Find files with fd${NC}"
+    echo -e "  ${MAGENTA}odin --installed${NC} - ${WHITE}Show all installed tools${NC}"
+    echo ""
+    
+    echo -e "${BOLD}${YELLOW}Next Steps:${NC}"
+    echo -e "  ${WHITE}1.${NC} Run: ${CYAN}source ~/.bashrc${NC} to activate all features"
+    echo -e "  ${WHITE}2.${NC} Open a new terminal to see the custom MOTD"
+    echo -e "  ${WHITE}3.${NC} Try: ${CYAN}tmx${NC} to manage tmux sessions interactively"
+    echo -e "  ${WHITE}4.${NC} Try: ${CYAN}odin --installed${NC} to see all tools"
+    echo ""
+    
+    echo -e "${BOLD}${BLUE}Tips:${NC}"
+    echo -e "  ${WHITE}•${NC} Use ${CYAN}Ctrl+R${NC} to search your command history"
+    echo -e "  ${WHITE}•${NC} Use ${CYAN}z <dir>${NC} to quickly jump to frequently used directories"
+    echo -e "  ${WHITE}•${NC} Use ${CYAN}tmx${NC} for an interactive tmux session picker"
+    echo -e "  ${WHITE}•${NC} Run ${CYAN}odin --update${NC} to update all tools and configurations"
+    echo ""
+    
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "${BOLD}Backups (if any) are in:${NC}"
+    echo -e "  ${WHITE}$BASHRC.bak${NC}"
+    echo -e "  ${WHITE}$PROFILE.bak${NC}"
+    echo -e "  ${WHITE}$TMUXCONF.bak${NC}"
+    echo -e "  ${WHITE}$BASHRC_FUNCTIONS.bak${NC}"
+    echo ""
 }
 
 backup_file() {
@@ -295,16 +386,39 @@ else
 fi
 
 # ---------------------------------------------------------
-# 8. Install Odin CLI
+# 8. Install tmx script
 # ---------------------------------------------------------
-print_step "Installing Odin CLI"
+print_step "Installing tmx script"
+TMX_SCRIPT_PATH="/usr/local/bin/tmx"
+if command -v curl >/dev/null 2>&1; then
+    TMP_TMX=$(mktemp)
+    if curl -fsSL "$TMX_SCRIPT_URL" -o "$TMP_TMX"; then
+        sudo mv "$TMP_TMX" "$TMX_SCRIPT_PATH"
+        sudo chmod +x "$TMX_SCRIPT_PATH"
+        print_success "tmx script installed to $TMX_SCRIPT_PATH"
+    else
+        rm -f "$TMP_TMX"
+        print_error "Failed to download tmx script from: $TMX_SCRIPT_URL"
+    fi
+else
+    print_error "curl not found; cannot download tmx script"
+fi
+
+# ---------------------------------------------------------
+# 9. Install/Update Odin CLI (always updates)
+# ---------------------------------------------------------
+print_step "Installing/Updating Odin CLI"
 ODIN_CLI_PATH="/usr/local/bin/odin"
 if command -v curl >/dev/null 2>&1; then
     TMP_CLI=$(mktemp)
     if curl -fsSL "$ODIN_CLI_URL" -o "$TMP_CLI"; then
         sudo mv "$TMP_CLI" "$ODIN_CLI_PATH"
         sudo chmod +x "$ODIN_CLI_PATH"
-        print_success "Odin CLI installed to $ODIN_CLI_PATH"
+        if [ -f "$ODIN_CLI_PATH" ]; then
+            print_success "Odin CLI installed/updated at $ODIN_CLI_PATH"
+        else
+            print_success "Odin CLI installed to $ODIN_CLI_PATH"
+        fi
         print_success "Run 'odin --installed' to see all installed tools"
     else
         rm -f "$TMP_CLI"
@@ -315,7 +429,7 @@ else
 fi
 
 # ---------------------------------------------------------
-# 9. Update ~/.bashrc to source the functions script
+# 10. Update ~/.bashrc to source the functions script
 # ---------------------------------------------------------
 print_step "Configuring ~/.bashrc"
 backup_file "$BASHRC"
@@ -339,7 +453,7 @@ else
 fi
 
 # ---------------------------------------------------------
-# 10. Update ~/.profile (ensure it sources ~/.bashrc)
+# 11. Update ~/.profile (ensure it sources ~/.bashrc)
 # ---------------------------------------------------------
 print_step "Configuring ~/.profile"
 backup_file "$PROFILE"
@@ -372,15 +486,4 @@ EOF
     print_success "Created $PROFILE"
 fi
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✓ Installation Complete!"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "Backups (if any) are in:"
-echo "  $BASHRC.bak"
-echo "  $PROFILE.bak"
-echo "  $TMUXCONF.bak"
-echo "  $BASHRC_FUNCTIONS.bak"
-
-source ~/.bashrc
+show_recap
