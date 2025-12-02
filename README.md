@@ -16,3 +16,29 @@ Run the following command to set up your shell environment:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alberto-rota/odin/master/setup.sh | sh
 ```
+
+## After Installation
+
+After the setup completes, activate all the new features:
+
+```bash
+source ~/.bashrc
+```
+
+Then, you can start using tmux for terminal multiplexing:
+
+```bash
+tmux
+```
+
+Or use the interactive tmux session manager:
+
+```bash
+tmx
+```
+
+To see all available commands and features, run:
+
+```bash
+odin --help
+```

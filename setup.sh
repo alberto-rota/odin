@@ -26,7 +26,7 @@ BASHRC_FUNCTIONS="$HOME/.bashrc-functions.sh"
 # Helpers
 # ---------------------------------------------------------
 STEP_NUM=0
-TOTAL_STEPS=16
+TOTAL_STEPS=17
 
 # Colors
 RED='\033[0;31m'
@@ -75,6 +75,7 @@ show_recap() {
     echo "  ${GREEN}✓${NC} ${WHITE}eza${NC} - Modern ls replacement"
     echo "  ${GREEN}✓${NC} ${WHITE}ripgrep${NC} - Fast text search"
     echo "  ${GREEN}✓${NC} ${WHITE}fd${NC} - Fast file finder"
+    echo "  ${GREEN}✓${NC} ${WHITE}bat${NC} - Cat replacement with syntax highlighting"
     echo "  ${GREEN}✓${NC} ${WHITE}uv${NC} - Fast Python package manager"
     echo "  ${GREEN}✓${NC} ${WHITE}tmx${NC} - Interactive tmux session manager"
     echo "  ${GREEN}✓${NC} ${WHITE}odin${NC} - Odin setup management CLI"
@@ -112,6 +113,7 @@ show_recap() {
     echo "  ${MAGENTA}z <dir>${NC} - ${WHITE}Jump to directory with zoxide${NC}"
     echo "  ${MAGENTA}rg <pattern>${NC} - ${WHITE}Search text with ripgrep${NC}"
     echo "  ${MAGENTA}fd <pattern>${NC} - ${WHITE}Find files with fd${NC}"
+    echo "  ${MAGENTA}bat <file>${NC} - ${WHITE}View file with syntax highlighting${NC}"
     echo "  ${MAGENTA}odin --installed${NC} - ${WHITE}Show all installed tools${NC}"
     echo ""
     
@@ -332,6 +334,18 @@ if ! command -v fd >/dev/null 2>&1; then
     fi
 else
     print_success "fd already installed"
+fi
+
+print_step "Installing bat"
+if ! command -v bat >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y bat
+        print_success "bat installed successfully"
+    else
+        print_error "apt-get not found. Please install bat manually."
+    fi
+else
+    print_success "bat already installed"
 fi
 
 # ---------------------------------------------------------
