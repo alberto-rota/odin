@@ -155,7 +155,7 @@ Commands:
   --gpu              Launch nvitop GPU monitoring tool
   --help, -h         Show this help message
   --version, -v      Show version information
-
+-------------
 Examples:
   odin --installed   List all installed tools
   odin -i            Short form
