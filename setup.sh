@@ -92,19 +92,14 @@ fi
 # 3. Install MOTD
 # ---------------------------------------------------------
 echo "Installing MOTD..."
-if [ -w "$MOTD" ] || [ "$(id -u)" -eq 0 ]; then
-    if command -v curl >/dev/null 2>&1; then
-        if curl -fsSL "$MOTD_URL" -o "$MOTD"; then
-            echo "MOTD installed successfully."
-        else
-            echo "WARNING: Failed to download MOTD from: $MOTD_URL"
-        fi
+if command -v curl >/dev/null 2>&1; then
+    if curl -fsSL "$MOTD_URL" | sudo tee "$MOTD" >/dev/null; then
+        echo "MOTD installed successfully."
     else
-        echo "WARNING: curl not found; cannot download MOTD."
+        echo "WARNING: Failed to download or install MOTD from: $MOTD_URL"
     fi
 else
-    echo "WARNING: Cannot write to $MOTD (need sudo). Skipping MOTD installation."
-    echo "         You can manually copy motd.txt to $MOTD with sudo."
+    echo "WARNING: curl not found; cannot download MOTD."
 fi
 
 # ---------------------------------------------------------
@@ -114,12 +109,8 @@ echo "Checking for tmux..."
 if ! command -v tmux >/dev/null 2>&1; then
     echo "Installing tmux..."
     if command -v apt-get >/dev/null 2>&1; then
-        if [ "$(id -u)" -eq 0 ]; then
-            apt-get update && apt-get install -y tmux
-        else
-            echo "WARNING: Need sudo to install tmux. Please run:"
-            echo "         sudo apt-get update && sudo apt-get install -y tmux"
-        fi
+        sudo apt-get update && sudo apt-get install -y tmux
+        echo "tmux installed successfully."
     else
         echo "WARNING: apt-get not found. Please install tmux manually."
     fi
