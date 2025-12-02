@@ -141,7 +141,7 @@ update_all() {
 }
 
 show_help() {
-    show_motd
+    cat /etc/motd
     cat <<EOF
 Odin CLI v${VERSION}
 
