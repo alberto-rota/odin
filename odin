@@ -142,6 +142,7 @@ update_all() {
 
 show_help() {
     cat /etc/motd
+    echo "crsito"
     cat <<EOF
 Odin CLI v${VERSION}
 
