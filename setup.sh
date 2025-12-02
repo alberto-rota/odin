@@ -9,7 +9,7 @@ set -eu
 : "${BASHRC_FUNCTIONS_URL:=$REPO_URL/bashrc-functions.sh}"
 : "${TMUXCONF_URL:=$REPO_URL/.tmux.conf}"
 : "${MOTD_URL:=$REPO_URL/motd.txt}"
-: "${ODIN_CLI_URL:=$REPO_URL}"
+: "${ODIN_CLI_URL:=$REPO_URL/odin}"
 : "${TMX_SCRIPT_URL:=$REPO_URL/bin/tmx}"
 
 THEME_NAME="pata-odin-shell.omp.json"
