@@ -1,0 +1,69 @@
+# >>> BEGIN_ALBERTO_BASHRC >>>
+#=================================================================================================
+### WANDB
+#=================================================================================================
+wbclean() {
+    wandb cache cleanup 1
+    wandb artifact cache cleanup .
+}
+#=================================================================================================
+
+#=================================================================================================
+### ALIASES
+#=================================================================================================
+alias bashrc="nano ~/.bashrc"
+alias rebash="source ~/.bashrc"
+alias cda="conda deactivate"
+alias dspace="du -h . 2>/dev/null | grep '[0-9\.]\+G'"
+alias wbr="pkill -f -u $USER 'wandb-service'"
+#=================================================================================================
+
+#=================================================================================================
+### OH-MY-POSH
+#=================================================================================================
+export POSH_PATH="$HOME/.cache/oh-my-posh/themes/pata-odin-shell.omp.json"
+eval "$(oh-my-posh init bash --config "$POSH_PATH")"
+#=================================================================================================
+
+#=================================================================================================
+### NAVIGATION / FILESYSTEM UTILITIES
+#=================================================================================================
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'
+
+eval "$(zoxide init bash --cmd cd)"
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+alias ls="eza $@ -lh --tree --level=1 --git --icons"
+#=================================================================================================
+#=================================================================================================
+### TMUX
+#=================================================================================================
+export TERM=tmux-256color
+export COLORTERM=truecolor
+# [ -z "$TMUX" ] && ! tmux has-session -t console 2>/dev/null && ~/misc/tmuxstartup.sh
+tma() {
+        tmux attach -t"$1"
+}
+tmc() {
+    local name=$1
+    local tag=${name:0:1}
+    tmux new-session -s "$name" -t "$tag"
+}
+alias tml="tmux ls"
+# Auto-attach to tmux session for all terminal sessions
+# if [[ -z "$TMUX" ]] && [[ $- == *i* ]]; then
+#     # Check if a session named "main" exists
+#     if tmux has-session -t main 2>/dev/null; then
+#         # Attach to existing session
+#         tmux attach-session -t main
+#     else
+#         # Create new session named "main"
+#         tmux new-session -s main
+#     fi
+# fi
+#=================================================================================================
+
+alias jn='jupyter notebook --ip=0.0.0.0 --port=33433 --no-browser --ServerApp.allow_origin="*"'
+export PATH="$HOME/local/bin:$PATH"
+# <<< END_ALBERTO_BASHRC <<<
+
