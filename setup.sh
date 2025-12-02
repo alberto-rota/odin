@@ -9,7 +9,7 @@ set -eu
 : "${BASHRC_FUNCTIONS_URL:=$REPO_URL/bashrc-functions.sh}"
 : "${TMUXCONF_URL:=$REPO_URL/.tmux.conf}"
 : "${MOTD_URL:=$REPO_URL/motd.txt}"
-: "${ODIN_CLI_URL:=$REPO_URL/odin}"
+: "${ODIN_CLI_URL:=$REPO_URL}"
 : "${TMX_SCRIPT_URL:=$REPO_URL/bin/tmx}"
 
 THEME_NAME="pata-odin-shell.omp.json"
@@ -412,9 +412,14 @@ ODIN_CLI_PATH="/usr/local/bin/odin"
 if command -v curl >/dev/null 2>&1; then
     TMP_CLI=$(mktemp)
     if curl -fsSL "$ODIN_CLI_URL" -o "$TMP_CLI"; then
+        # Remove old CLI if it exists
+        if [ -f "$ODIN_CLI_PATH" ]; then
+            sudo rm -f "$ODIN_CLI_PATH"
+        fi
+        # Install new CLI
         sudo mv "$TMP_CLI" "$ODIN_CLI_PATH"
         sudo chmod +x "$ODIN_CLI_PATH"
-        if [ -f "$ODIN_CLI_PATH" ]; then
+        if [ -f "$ODIN_CLI_PATH" ] && [ -x "$ODIN_CLI_PATH" ]; then
             print_success "Odin CLI installed/updated at $ODIN_CLI_PATH"
         else
             print_success "Odin CLI installed to $ODIN_CLI_PATH"

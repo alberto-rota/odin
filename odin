@@ -96,48 +96,6 @@ show_motd() {
     fi
 }
 
-update_cli() {
-    echo "Updating Odin CLI..."
-    ODIN_CLI_PATH="/usr/local/bin/odin"
-    
-    if command -v curl >/dev/null 2>&1; then
-        TMP_CLI=$(mktemp)
-        if curl -fsSL "$ODIN_CLI_URL" -o "$TMP_CLI"; then
-            # Remove old CLI if it exists
-            if [ -f "$ODIN_CLI_PATH" ]; then
-                if [ "$(id -u)" -eq 0 ]; then
-                    rm -f "$ODIN_CLI_PATH"
-                else
-                    sudo rm -f "$ODIN_CLI_PATH"
-                fi
-            fi
-            
-            # Install new CLI
-            if [ "$(id -u)" -eq 0 ]; then
-                mv "$TMP_CLI" "$ODIN_CLI_PATH"
-                chmod +x "$ODIN_CLI_PATH"
-            else
-                sudo mv "$TMP_CLI" "$ODIN_CLI_PATH"
-                sudo chmod +x "$ODIN_CLI_PATH"
-            fi
-            
-            if [ -f "$ODIN_CLI_PATH" ] && [ -x "$ODIN_CLI_PATH" ]; then
-                echo "✓ Odin CLI updated successfully"
-            else
-                echo "ERROR: Failed to install updated CLI"
-                exit 1
-            fi
-        else
-            rm -f "$TMP_CLI"
-            echo "ERROR: Failed to download Odin CLI from: $ODIN_CLI_URL"
-            exit 1
-        fi
-    else
-        echo "ERROR: curl not found; cannot update Odin CLI"
-        exit 1
-    fi
-}
-
 update_all() {
     echo "Updating all tools and configurations..."
     echo "Running setup script..."
@@ -194,7 +152,6 @@ Usage: odin [command]
 Commands:
   --installed, -i    Show list of installed tools and features
   --update           Re-run setup script to install/update all tools
-  --update-cli       Update only the Odin CLI to latest version
   --gpu              Launch nvitop GPU monitoring tool
   --help, -h         Show this help message
   --version, -v      Show version information
@@ -203,7 +160,6 @@ Examples:
   odin --installed   List all installed tools
   odin -i            Short form
   odin --update      Update all tools and configurations
-  odin --update-cli  Update only the CLI
   odin --gpu         Monitor GPU usage with nvitop
 
 EOF
@@ -220,9 +176,6 @@ case "${1:-}" in
         ;;
     --update)
         update_all
-        ;;
-    --update-cli)
-        update_cli
         ;;
     --gpu)
         launch_gpu_monitor
