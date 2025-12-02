@@ -141,6 +141,7 @@ update_all() {
 }
 
 show_help() {
+    show_motd
     cat <<EOF
 Odin CLI v${VERSION}
 
@@ -160,7 +161,7 @@ Examples:
   odin --update-cli  Update only the CLI
 
 EOF
-    show_motd
+    
 }
 
 show_version() {
