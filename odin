@@ -145,7 +145,7 @@ show_help() {
     show_motd
     echo ""
     cat <<EOF
-Odin CLI v${VERSION}
+Odin CLI v${VERSION} - Made by Pato
 
 Usage: odin [command]
 
