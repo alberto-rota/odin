@@ -14,7 +14,7 @@ THEME_NAME="pata-odin-shell.omp.json"
 THEME_DIR="$HOME/.cache/oh-my-posh/themes"
 THEME_PATH="$THEME_DIR/$THEME_NAME"
 
-BASHRC="$HOME/.bashrc"
+BASHRC="$HOME/.bashrc"  
 PROFILE="$HOME/.profile"
 TMUXCONF="$HOME/.tmux.conf"
 MOTD="/etc/motd"
