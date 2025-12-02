@@ -1,0 +1,215 @@
+#!/bin/bash
+# Save as ~/bin/tmx
+
+# Parse command line arguments
+DIRECT_SESSION=""
+while getopts "s:" opt; do
+    case $opt in
+        s) DIRECT_SESSION="$OPTARG" ;;
+        *) echo "Usage: $0 [-s session_name]"; exit 1 ;;
+    esac
+done
+
+# Check if required tools are installed
+if ! command -v fzf &> /dev/null; then
+    echo "fzf is required but not installed. Install with: sudo apt install fzf"
+    exit 1
+fi
+
+if ! command -v tmux &> /dev/null; then
+    echo "tmux is required but not installed. Install with: sudo apt install tmux"
+    exit 1
+fi
+
+# Check if we're inside tmux (needed for option display)
+inside_tmux=$([ -n "$TMUX" ] && echo true || echo false)
+
+# Get current session name if inside tmux
+current_session=""
+if [ "$inside_tmux" = true ]; then
+    current_session=$(tmux display-message -p '#S')
+fi
+
+# Function to switch/attach to session
+switch_to_session() {
+    local session_name=$1
+    
+    # Attach or switch to the session based on context
+    if [ "$inside_tmux" = true ]; then
+        # Switch to the session (this works from within tmux)
+        tmux switch-client -t "$session_name"
+    else
+        # Attach to the session (replace current shell process)
+        exec tmux attach-session -t "$session_name"
+    fi
+}
+
+# Main execution
+if [ -n "$DIRECT_SESSION" ]; then
+    # Direct session specified
+    if tmux has-session -t "$DIRECT_SESSION" 2>/dev/null; then
+        switch_to_session "$DIRECT_SESSION"
+    else
+        echo "❌ Session '$DIRECT_SESSION' not found!"
+        exit 1
+    fi
+else
+    # Get existing tmux sessions with detailed info
+    sessions_raw=$(tmux list-sessions -F "#{session_name}|#{session_windows}|#{session_attached}|#{session_created}|#{session_last_attached}|#{session_activity}" 2>/dev/null)
+    
+    # Format sessions for display with descriptive labels
+    formatted_sessions=""
+    job_sessions=""
+    other_sessions=""
+    
+    if [ -n "$sessions_raw" ]; then
+        while IFS='|' read -r session_name windows attached created last_attached activity; do
+            # Trim whitespace
+            session_name=$(echo "$session_name" | xargs)
+            windows=$(echo "$windows" | xargs)
+            attached=$(echo "$attached" | xargs)
+            
+            # Skip current session when inside tmux to avoid switching to self
+            if [ "$inside_tmux" = true ] && [ "$session_name" = "$current_session" ]; then
+                continue
+            fi
+            
+            attached_status=$([[ "$attached" == "1" ]] && echo "📌 attached" || echo "🔓 detached")
+            created_time=$(date -d "@$created" "+%m/%d %H:%M" 2>/dev/null || echo "unknown")
+            last_time=$([[ -n "$last_attached" && "$last_attached" != "0" ]] && date -d "@$last_attached" "+%m/%d %H:%M" 2>/dev/null || echo "never")
+            
+            # Check if this is a job session
+            if [[ "$session_name" =~ ^job_[0-9]+ ]]; then
+                # Extract job ID from session name
+                job_id=$(echo "$session_name" | grep -oE '[0-9]+' | head -1)
+                
+                # Try to get job status
+                job_status=$(squeue -j "$job_id" --format="%.2t" --noheader 2>/dev/null | xargs)
+                if [ -n "$job_status" ]; then
+                    status_icon=$([[ "$job_status" == "R" ]] && echo "🟢" || echo "🟡")
+                    session_display="$status_icon $session_name  [$attached_status] [$windows windows] [created: $created_time] [last: $last_time]"
+                else
+                    session_display="💀 $session_name (job ended)  [$attached_status] [$windows windows] [created: $created_time] [last: $last_time]"
+                fi
+                job_sessions+="$session_display"$'\n'
+            else
+                session_display="$session_name  [$attached_status] [$windows windows] [created: $created_time] [last: $last_time]"
+                other_sessions+="$session_display"$'\n'
+            fi
+        done <<< "$sessions_raw"
+        
+        # Combine job sessions first, then other sessions
+        formatted_sessions="${job_sessions}${other_sessions}"
+        # Remove trailing newline
+        formatted_sessions=${formatted_sessions%$'\n'}
+    fi
+    
+    # Add option to create new session and detach
+    new_session_option="🆕 CREATE NEW SESSION"
+    detach_option="🔓 DETACH FROM CURRENT SESSION"
+    
+    # Count available sessions (excluding current if inside tmux)
+    session_count=0
+    if [ -n "$formatted_sessions" ]; then
+        session_count=$(echo "$formatted_sessions" | grep -c "^[^[:space:]]")
+    fi
+    
+    # Combine options
+    if [ -n "$formatted_sessions" ]; then
+        if [ "$inside_tmux" = true ]; then
+            all_options="$formatted_sessions"$'\n'"$detach_option"$'\n'"$new_session_option"
+        else
+            all_options="$formatted_sessions"$'\n'"$new_session_option"
+        fi
+    else
+        if [ "$inside_tmux" = true ]; then
+            all_options="$detach_option"$'\n'"$new_session_option"
+        else
+            all_options="$new_session_option"
+        fi
+    fi
+    
+    # Calculate fzf height
+    if [ "$inside_tmux" = true ]; then
+        total_options=$((session_count + 2))  # sessions + detach + new
+    else
+        total_options=$((session_count + 1))  # sessions + new
+    fi
+    fzf_height=$((total_options + 5))
+    if [ $fzf_height -lt 10 ]; then fzf_height=10; fi
+    if [ $fzf_height -gt 25 ]; then fzf_height=25; fi
+    
+    # Create prompt text
+    if [ $session_count -eq 0 ]; then
+        if [ "$inside_tmux" = true ]; then
+            prompt_text="🎯 No other sessions - detach or create new: "
+        else
+            prompt_text="🎯 No existing sessions - create new one: "
+        fi
+    else
+        if [ "$inside_tmux" = true ]; then
+            prompt_text="🎯 Select session, detach, or create new ($session_count other): "
+        else
+            prompt_text="🎯 Select session to attach or create new ($session_count existing): "
+        fi
+    fi
+    
+    # Add header for clarity
+    header="🟢 = Job Running | 🟡 = Job Pending | 💀 = Job Ended | 📌 = Attached | 🔓 = Detached"
+    
+    # Use fzf for selection
+    selected=$(echo "$all_options" | fzf \
+        --height=${fzf_height} \
+        --border=rounded \
+        --prompt="$prompt_text" \
+        --header="$header" \
+        --header-lines=0 \
+        --preview-window=hidden \
+        --tabstop=1 \
+        --color="header:italic,prompt:blue,pointer:red,fg+:bright-white,bg+:236" \
+        --bind="ctrl-c:abort" \
+        --info=inline)
+    
+    if [ -z "$selected" ]; then
+        exit 0
+    fi
+    
+    # Check if user selected to detach
+    if [[ "$selected" == *"DETACH FROM CURRENT SESSION"* ]]; then
+        tmux detach-client
+        exit 0
+    # Check if user selected to create new session
+    elif [[ "$selected" == *"CREATE NEW SESSION"* ]]; then
+        read -p "Enter session name (or press Enter for default): " new_session_name
+        
+        # Use default name if empty
+        if [ -z "$new_session_name" ]; then
+            new_session_name="session_$(date +"%Y%m%d_%H%M%S")"
+        fi
+        
+        # Sanitize session name
+        new_session_name=$(echo "$new_session_name" | sed 's/[^a-zA-Z0-9_-]/_/g')
+        
+        # Check if session name already exists
+        if tmux has-session -t "$new_session_name" 2>/dev/null; then
+            read -p "Session '$new_session_name' exists. Attach to it? (y/N): " attach_existing
+            if [[ "$attach_existing" =~ ^[Yy]$ ]]; then
+                session_name="$new_session_name"
+            else
+                exit 0
+            fi
+        else
+            tmux new-session -d -s "$new_session_name"
+            session_name="$new_session_name"
+        fi
+    else
+        # Extract session name from selection (between first space or emoji and first bracket)
+        session_name=$(echo "$selected" | sed -E 's/^[^a-zA-Z0-9_-]*//' | awk '{print $1}')
+        
+        if [ -z "$session_name" ]; then
+            exit 1
+        fi
+    fi
+    
+    switch_to_session "$session_name"
+fi
