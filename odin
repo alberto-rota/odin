@@ -100,14 +100,19 @@ update_cli() {
     echo "Updating Odin CLI..."
     ODIN_CLI_PATH="/usr/local/bin/odin"
     
-    if [ ! -w "$ODIN_CLI_PATH" ] && [ "$(id -u)" -ne 0 ]; then
-        echo "ERROR: Need sudo to update CLI. Please run: sudo odin --update-cli"
-        exit 1
-    fi
-    
     if command -v curl >/dev/null 2>&1; then
         TMP_CLI=$(mktemp)
         if curl -fsSL "$ODIN_CLI_URL" -o "$TMP_CLI"; then
+            # Remove old CLI if it exists
+            if [ -f "$ODIN_CLI_PATH" ]; then
+                if [ "$(id -u)" -eq 0 ]; then
+                    rm -f "$ODIN_CLI_PATH"
+                else
+                    sudo rm -f "$ODIN_CLI_PATH"
+                fi
+            fi
+            
+            # Install new CLI
             if [ "$(id -u)" -eq 0 ]; then
                 mv "$TMP_CLI" "$ODIN_CLI_PATH"
                 chmod +x "$ODIN_CLI_PATH"
@@ -115,7 +120,13 @@ update_cli() {
                 sudo mv "$TMP_CLI" "$ODIN_CLI_PATH"
                 sudo chmod +x "$ODIN_CLI_PATH"
             fi
-            echo "✓ Odin CLI updated successfully"
+            
+            if [ -f "$ODIN_CLI_PATH" ] && [ -x "$ODIN_CLI_PATH" ]; then
+                echo "✓ Odin CLI updated successfully"
+            else
+                echo "ERROR: Failed to install updated CLI"
+                exit 1
+            fi
         else
             rm -f "$TMP_CLI"
             echo "ERROR: Failed to download Odin CLI from: $ODIN_CLI_URL"
@@ -140,9 +151,41 @@ update_all() {
     fi
 }
 
+launch_gpu_monitor() {
+    if ! command -v nvitop >/dev/null 2>&1; then
+        echo "nvitop not found. Installing..."
+        if command -v pip >/dev/null 2>&1; then
+            pip install --user nvitop
+        elif command -v pip3 >/dev/null 2>&1; then
+            pip3 install --user nvitop
+        elif command -v uv >/dev/null 2>&1; then
+            uv pip install nvitop
+        else
+            echo "ERROR: No Python package manager found (pip, pip3, or uv)"
+            echo "Please install nvitop manually: pip install nvitop"
+            exit 1
+        fi
+        
+        # Check if installation was successful
+        if ! command -v nvitop >/dev/null 2>&1; then
+            # Try to find it in user's local bin
+            if [ -f "$HOME/.local/bin/nvitop" ]; then
+                export PATH="$HOME/.local/bin:$PATH"
+            else
+                echo "ERROR: nvitop installation failed or not in PATH"
+                echo "Please install manually: pip install nvitop"
+                exit 1
+            fi
+        fi
+    fi
+    
+    # Launch nvitop
+    exec nvitop
+}
+
 show_help() {
-    cat /etc/motd
-    echo "crsito"
+    show_motd
+    echo ""
     cat <<EOF
 Odin CLI v${VERSION}
 
@@ -152,6 +195,7 @@ Commands:
   --installed, -i    Show list of installed tools and features
   --update           Re-run setup script to install/update all tools
   --update-cli       Update only the Odin CLI to latest version
+  --gpu              Launch nvitop GPU monitoring tool
   --help, -h         Show this help message
   --version, -v      Show version information
 
@@ -160,9 +204,9 @@ Examples:
   odin -i            Short form
   odin --update      Update all tools and configurations
   odin --update-cli  Update only the CLI
+  odin --gpu         Monitor GPU usage with nvitop
 
 EOF
-    
 }
 
 show_version() {
@@ -179,6 +223,9 @@ case "${1:-}" in
         ;;
     --update-cli)
         update_cli
+        ;;
+    --gpu)
+        launch_gpu_monitor
         ;;
     --help|-h|"")
         show_help
