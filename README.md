@@ -1,44 +1,37 @@
-# Odin Setup
+# Odin Setup and CLI
 
-## Prerequisites
-
-Before running the setup script, make sure to update your system and install curl:
-
+Update and Upgrade the system to the newest stable tools and versions. This also installs **curl**.
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y curl
 ```
 
-## Installation
-
-Run the following command to set up your shell environment:
-
+Copy-paste this command into the terminal. It downloads a script from this repo and executes it. 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alberto-rota/odin/master/setup.sh | sh
 ```
+The script installs several CLI / terminal tools you like, sets up your custom **tmux**, customizes your terminal and installs the **odin** CLI.
 
-## After Installation
+***
 
-After the setup completes, activate all the new features:
-
+After the setup completes, activate all the new features by re-sourcing the bashrc with this line
 ```bash
 source ~/.bashrc
 ```
 
-Then, you can start using tmux for terminal multiplexing:
-
+Use 
 ```bash
 tmux
 ```
-
-Or use the interactive tmux session manager:
-
+to start a new **tmux** session, rr use your custom interactive tmux session manager:
 ```bash
 tmx
 ```
+***
 
-To see all available commands and features, run:
-
+## The odin CLI
+Just type 
 ```bash
 odin --help
 ```
+to see what you can do.
