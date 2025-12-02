@@ -9,6 +9,7 @@ set -eu
 : "${BASHRC_FUNCTIONS_URL:=$REPO_URL/bashrc-functions.sh}"
 : "${TMUXCONF_URL:=$REPO_URL/.tmux.conf}"
 : "${MOTD_URL:=$REPO_URL/motd.txt}"
+: "${ODIN_CLI_URL:=$REPO_URL/odin}"
 
 THEME_NAME="pata-odin-shell.omp.json"
 THEME_DIR="$HOME/.cache/oh-my-posh/themes"
@@ -24,7 +25,7 @@ BASHRC_FUNCTIONS="$HOME/.bashrc-functions.sh"
 # Helpers
 # ---------------------------------------------------------
 STEP_NUM=0
-TOTAL_STEPS=14
+TOTAL_STEPS=15
 
 print_step() {
     STEP_NUM=$((STEP_NUM + 1))
@@ -294,7 +295,27 @@ else
 fi
 
 # ---------------------------------------------------------
-# 8. Update ~/.bashrc to source the functions script
+# 8. Install Odin CLI
+# ---------------------------------------------------------
+print_step "Installing Odin CLI"
+ODIN_CLI_PATH="/usr/local/bin/odin"
+if command -v curl >/dev/null 2>&1; then
+    TMP_CLI=$(mktemp)
+    if curl -fsSL "$ODIN_CLI_URL" -o "$TMP_CLI"; then
+        sudo mv "$TMP_CLI" "$ODIN_CLI_PATH"
+        sudo chmod +x "$ODIN_CLI_PATH"
+        print_success "Odin CLI installed to $ODIN_CLI_PATH"
+        print_success "Run 'odin --installed' to see all installed tools"
+    else
+        rm -f "$TMP_CLI"
+        print_error "Failed to download Odin CLI from: $ODIN_CLI_URL"
+    fi
+else
+    print_error "curl not found; cannot download Odin CLI"
+fi
+
+# ---------------------------------------------------------
+# 9. Update ~/.bashrc to source the functions script
 # ---------------------------------------------------------
 print_step "Configuring ~/.bashrc"
 backup_file "$BASHRC"
@@ -318,7 +339,7 @@ else
 fi
 
 # ---------------------------------------------------------
-# 9. Update ~/.profile (ensure it sources ~/.bashrc)
+# 10. Update ~/.profile (ensure it sources ~/.bashrc)
 # ---------------------------------------------------------
 print_step "Configuring ~/.profile"
 backup_file "$PROFILE"
@@ -365,3 +386,4 @@ echo ""
 echo "Opening a new shell or running 'source ~/.bashrc' will apply all changes."
 echo ""
 
+source ~/.bashrc

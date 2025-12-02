@@ -16,5 +16,3 @@ Run the following command to set up your shell environment:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alberto-rota/odin/master/setup.sh | sh
 ```
-
-This will install:
