@@ -382,8 +382,5 @@ echo "  $BASHRC.bak"
 echo "  $PROFILE.bak"
 echo "  $TMUXCONF.bak"
 echo "  $BASHRC_FUNCTIONS.bak"
-echo ""
-echo "Opening a new shell or running 'source ~/.bashrc' will apply all changes."
-echo ""
 
 source ~/.bashrc
