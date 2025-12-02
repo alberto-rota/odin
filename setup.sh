@@ -47,7 +47,7 @@ echo "Checking for oh-my-posh..."
 if ! command -v oh-my-posh >/dev/null 2>&1; then
     echo "Installing oh-my-posh..."
     OMP_VERSION="v19.7.0"
-    OMP_INSTALL_DIR="$HOME/.local/bin"
+    OMP_INSTALL_DIR="/usr/local/bin"
     
     # Detect architecture
     ARCH=$(uname -m)
@@ -68,18 +68,14 @@ if ! command -v oh-my-posh >/dev/null 2>&1; then
             ;;
     esac
     
-    mkdir -p "$OMP_INSTALL_DIR"
-    
     if command -v curl >/dev/null 2>&1; then
-        if curl -fsSL "https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/${OMP_VERSION}/${OMP_BINARY}" -o "$OMP_INSTALL_DIR/oh-my-posh"; then
-            chmod +x "$OMP_INSTALL_DIR/oh-my-posh"
+        TMP_BINARY=$(mktemp)
+        if curl -fsSL "https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/${OMP_VERSION}/${OMP_BINARY}" -o "$TMP_BINARY"; then
+            sudo mv "$TMP_BINARY" "$OMP_INSTALL_DIR/oh-my-posh"
+            sudo chmod +x "$OMP_INSTALL_DIR/oh-my-posh"
             echo "oh-my-posh installed to $OMP_INSTALL_DIR/oh-my-posh (architecture: $ARCH)"
-            # Add to PATH if not already there
-            if ! echo "$PATH" | grep -q "$OMP_INSTALL_DIR"; then
-                export PATH="$OMP_INSTALL_DIR:$PATH"
-                ensure_line_in_file "export PATH=\"\$HOME/.local/bin:\$PATH\"" "$BASHRC"
-            fi
         else
+            rm -f "$TMP_BINARY"
             echo "WARNING: Failed to download oh-my-posh. Please install manually."
         fi
     else
