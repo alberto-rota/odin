@@ -4,7 +4,7 @@ set -eu
 # ---------------------------------------------------------
 # Config – URLs for downloading files from GitHub
 # ---------------------------------------------------------
-: "${REPO_URL:=https://raw.githubusercontent.com/alberto-rota/odin/main}"
+: "${REPO_URL:=https://raw.githubusercontent.com/alberto-rota/odin/master}"
 : "${OMP_THEME_URL:=$REPO_URL/pata-odin-shell.omp.json}"
 : "${BASHRC_FUNCTIONS_URL:=$REPO_URL/bashrc-functions.sh}"
 : "${TMUXCONF_URL:=$REPO_URL/.tmux.conf}"

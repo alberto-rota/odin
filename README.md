@@ -14,7 +14,7 @@ sudo apt install -y curl
 Run the following command to set up your shell environment:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alberto-rota/odin/main/setup.sh | sh
+curl -fsSL https://raw.githubusercontent.com/alberto-rota/odin/master/setup.sh | sh
 ```
 
 This will install:
